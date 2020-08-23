@@ -20,40 +20,38 @@ Sock::Sock()
 void Sock::CreateTestSocket(const char* msg)
 {
 
-	struct sockaddr_in address; 
+    struct sockaddr_in address; 
     int opt = 1; 
     int addrlen = sizeof(address); 
     char buffer[1024] = {0}; 
 
-	// AF_INET == IPv4, SOCK_STREAM == TCP (SOCK_DGRAM for UDP), 0 (protocol) => IP 
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    // AF_INET == IPv4, SOCK_STREAM == TCP (SOCK_DGRAM for UDP), 0 (protocol) => IP 
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (sockfd == 0) {
-		throw "Failure to create socket";
-	}
+    if (sockfd == 0) {
+        throw "Failure to create socket";
+    }
 
-	// attach socket to port 8080
-	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, 
+    // attach socket to port 8080
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, 
                                                   &opt, sizeof(opt))) {
-		throw "SetSockOpt failure";
-	}
+        throw "SetSockOpt failure";
+    }
 
-	address.sin_family = AF_INET; // IPv4
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons( PORT ) ;
+    address.sin_family = AF_INET; // IPv4
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons( PORT ) ;
 
 
-	// Forcefully attaching socket to the port 8080 
+    // Forcefully attaching socket to the port 8080 
     if (bind(sockfd, (struct sockaddr *)&address,  
                                  sizeof(address))<0) 
     { 
-        perror("bind failed"); 
-        exit(EXIT_FAILURE); 
+        throw "Failed to bind"; 
     } 
     if (listen(sockfd, 3) < 0) 
     { 
-        perror("listen"); 
-        exit(EXIT_FAILURE); 
+        throw "Failed to listen" 
     } 
 
 
@@ -63,12 +61,10 @@ void Sock::CreateTestSocket(const char* msg)
     if ((new_socket = accept(sockfd, (struct sockaddr *)&address,  
                        (socklen_t*)&addrlen))<0) 
     { 
-        perror("accept"); 
-        exit(EXIT_FAILURE); 
+        throw "Failed to accept new connection"
     } 
     valread = read( new_socket , buffer, 1024); 
     printf("%s\n",buffer ); 
     send(new_socket , msg , strlen(msg) , 0 ); 
-    // printf("Hello message sent\n"); 
 
 }
